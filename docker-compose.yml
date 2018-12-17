@@ -6,6 +6,8 @@ services:
     env_file: env.d/development
     ports:
       - "5452:5432"
+    networks:
+      - marsha
 
   # We use our production image as a basis for the development image, hence, we
   # define a "base" service upon which the "app" service depends to force
@@ -38,3 +40,102 @@ services:
     depends_on:
       - "base"
       - "db"
+    networks:
+      - marsha
+
+  # ------------------------
+  # Learning locker services
+  # see https://github.com/up2university/learninglocker2
+  mongodb:
+    image: mongo:3.2
+    # We use WiredTiger in all environments. In development environments we use small files
+    # to conserve disk space, and disable the journal for a minor performance gain.
+    # See https://docs.mongodb.com/v3.0/reference/program/mongod/#options for complete details.
+    command: mongod --smallfiles --nojournal --storageEngine wiredTiger
+    networks:
+      - marsha
+
+  mailcatcher:
+    image: sj26/mailcatcher:latest
+    ports:
+      - "1080:1080"
+    networks:
+      - marsha
+
+  redis:
+    image: redis:4-alpine
+    networks:
+      - marsha
+
+  xapi:
+    image: learninglocker/xapi-service:v1.1.0
+    restart: unless-stopped
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/learninglocker_v2
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - mongodb
+      - redis
+      - api
+      - ui
+      - worker
+    networks:
+      marsha:
+        aliases:
+          - xapi.marsha
+
+  api:
+    image: up2university/learninglocker2-app:070e4731379b15fd1c1aa646ea3fe77fcb9a0f68
+    env_file:
+      - env.d/development_xapi
+    command: "node api/dist/server"
+    depends_on:
+      - mongodb
+      - redis
+      - mailcatcher
+    networks:
+      - marsha
+
+
+  ui:
+    image: up2university/learninglocker2-app:070e4731379b15fd1c1aa646ea3fe77fcb9a0f68
+    env_file:
+      - env.d/development_xapi
+    command: "./entrypoint-ui.sh"
+    depends_on:
+      - mongodb
+      - redis
+      - api
+    networks:
+      - marsha
+
+  # FIXME: not sure we need this service for development
+  worker:
+    image: up2university/learninglocker2-app:070e4731379b15fd1c1aa646ea3fe77fcb9a0f68
+    env_file:
+      - env.d/development_xapi
+    command: "node worker/dist/server"
+    depends_on:
+      - mongodb
+      - redis
+      - mailcatcher
+    networks:
+      - marsha
+
+  nginx:
+    image: up2university/learninglocker2-nginx:070e4731379b15fd1c1aa646ea3fe77fcb9a0f68
+    env_file:
+      - env.d/development_xapi
+    depends_on:
+      - ui
+      - xapi
+    ports:
+      - "8443:443"
+      - "8080:80"
+    networks:
+      - marsha
+
+# This network is here to allow us to create aliases on some container's network.
+# Creating an alias will allow us to create a real URL and use it later in Django.
+networks:
+    marsha:

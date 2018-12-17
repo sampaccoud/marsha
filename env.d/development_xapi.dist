@@ -1,0 +1,18 @@
+# =========================
+# ==== Learning locker ====
+# =========================
+
+# -- Core --
+DOMAIN_NAME=localhost
+# Not really a secret for development
+APP_SECRET=tohy6uchaa8jai3phohmaeth5ruphaMaa3lei3eiweesuC2eeka6ohhaecooquai5lacaiTa
+
+# -- Mongo --
+MONGODB_PATH=mongodb://mongodb:27017/learninglocker_v2
+
+# -- Email --
+SMTP_HOST=mailcatcher
+SMTP_PORT=1025
+SMTP_SECURED=false
+SMTP_USER=
+SMTP_PASS=
