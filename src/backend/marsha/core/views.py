@@ -1,5 +1,6 @@
 """Views of the ``core`` app of the Marsha project."""
 import json
+import uuid
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -62,6 +63,7 @@ class VideoLTIView(TemplateResponseMixin, View):
             jwt_token = AccessToken()
             jwt_token.payload.update(
                 {
+                    "session_id": str(uuid.uuid4()),
                     "video_id": str(video.id),
                     "context_id": lti.context_id,
                     "roles": lti.roles,
