@@ -12,6 +12,7 @@ export const mapStateToProps = (
   state: RootState,
   { video }: VideoPlayerProps,
 ) => ({
+  jwt: state.context.jwt,
   video:
     (state &&
       state.resources[modelName.VIDEOS]!.byId &&
