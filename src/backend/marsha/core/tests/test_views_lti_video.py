@@ -32,13 +32,13 @@ class ViewsTestCase(TestCase):
         passport = ConsumerSiteLTIPassportFactory(oauth_consumer_key="ABC123")
         video = VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site=passport.consumer_site,
         )
         data = {
             "resource_link_id": "123",
             "roles": "instructor",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "oauth_consumer_key": "ABC123",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -61,6 +61,14 @@ class ViewsTestCase(TestCase):
         self.assertEqual(jwt_token.payload["user_id"], data["user_id"])
         self.assertEqual(jwt_token.payload["context_id"], data["context_id"])
         self.assertEqual(jwt_token.payload["roles"], [data["roles"]])
+        self.assertDictEqual(
+            jwt_token.payload["course"],
+            {
+                "school_name": "ufr",
+                "course_name": "mathematics",
+                "course_section": "00001",
+            },
+        )
 
         data_state = match.group(2)
         self.assertEqual(data_state, "instructor")
@@ -91,13 +99,13 @@ class ViewsTestCase(TestCase):
         passport = ConsumerSiteLTIPassportFactory(oauth_consumer_key="ABC123")
         video = VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site=passport.consumer_site,
         )
         data = {
             "resource_link_id": "123",
             "roles": "student",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "oauth_consumer_key": "ABC123",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -120,6 +128,14 @@ class ViewsTestCase(TestCase):
         self.assertEqual(jwt_token.payload["user_id"], data["user_id"])
         self.assertEqual(jwt_token.payload["context_id"], data["context_id"])
         self.assertEqual(jwt_token.payload["roles"], [data["roles"]])
+        self.assertDictEqual(
+            jwt_token.payload["course"],
+            {
+                "school_name": "ufr",
+                "course_name": "mathematics",
+                "course_section": "00001",
+            },
+        )
 
         data_state = match.group(2)
         self.assertEqual(data_state, "student")
@@ -148,13 +164,13 @@ class ViewsTestCase(TestCase):
         passport = ConsumerSiteLTIPassportFactory(oauth_consumer_key="ABC123")
         video = VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site=passport.consumer_site,
         )
         data = {
             "resource_link_id": "123",
             "roles": "student",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "oauth_consumer_key": "ABC123",
         }
         with mock.patch.object(
@@ -175,6 +191,14 @@ class ViewsTestCase(TestCase):
         self.assertEqual(jwt_token.payload["video_id"], str(video.id))
         self.assertEqual(jwt_token.payload["context_id"], data["context_id"])
         self.assertEqual(jwt_token.payload["roles"], [data["roles"]])
+        self.assertDictEqual(
+            jwt_token.payload["course"],
+            {
+                "school_name": "ufr",
+                "course_name": "mathematics",
+                "course_section": "00001",
+            },
+        )
 
         # Make sure we only go through LTI verification once as it is costly (getting passport +
         # signature)
@@ -186,7 +210,7 @@ class ViewsTestCase(TestCase):
         data = {
             "resource_link_id": "123",
             "roles": "student",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "oauth_consumer_key": "ABC123",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -242,7 +266,7 @@ class ViewsTestCase(TestCase):
         passport = ConsumerSiteLTIPassportFactory(oauth_consumer_key="ABC123")
         video = VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site=passport.consumer_site,
         )
         # Create a TimedTextTrack associated with the video to trigger the error
@@ -251,7 +275,7 @@ class ViewsTestCase(TestCase):
         data = {
             "resource_link_id": "123",
             "roles": "instructor",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "oauth_consumer_key": "ABC123",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -278,14 +302,14 @@ class DevelopmentViewsTestCase(TestCase):
         """In development, passport creation and LTI verification can be bypassed for a student."""
         video = VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site__domain="example.com",
         )
         # There is no need to provide an "oauth_consumer_key"
         data = {
             "resource_link_id": "123",
             "roles": "student",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "tool_consumer_instance_guid": "example.com",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -305,6 +329,14 @@ class DevelopmentViewsTestCase(TestCase):
         self.assertEqual(jwt_token.payload["user_id"], data["user_id"])
         self.assertEqual(jwt_token.payload["context_id"], data["context_id"])
         self.assertEqual(jwt_token.payload["roles"], [data["roles"]])
+        self.assertDictEqual(
+            jwt_token.payload["course"],
+            {
+                "school_name": "ufr",
+                "course_name": "mathematics",
+                "course_section": "00001",
+            },
+        )
 
         data_state = match.group(2)
         self.assertEqual(data_state, "student")
@@ -332,13 +364,13 @@ class DevelopmentViewsTestCase(TestCase):
         """In development, passport creation and LTI verif can be bypassed for a instructor."""
         video = VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site__domain="example.com",
         )
         data = {
             "resource_link_id": "123",
             "roles": "instructor",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "tool_consumer_instance_guid": "example.com",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -358,6 +390,14 @@ class DevelopmentViewsTestCase(TestCase):
         self.assertEqual(jwt_token.payload["user_id"], data["user_id"])
         self.assertEqual(jwt_token.payload["context_id"], data["context_id"])
         self.assertEqual(jwt_token.payload["roles"], [data["roles"]])
+        self.assertDictEqual(
+            jwt_token.payload["course"],
+            {
+                "school_name": "ufr",
+                "course_name": "mathematics",
+                "course_section": "00001",
+            },
+        )
 
         data_state = match.group(2)
         self.assertEqual(data_state, "instructor")
@@ -387,7 +427,7 @@ class DevelopmentViewsTestCase(TestCase):
         data = {
             "resource_link_id": "123",
             "roles": "instructor",
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "tool_consumer_instance_guid": "example.com",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
@@ -407,6 +447,14 @@ class DevelopmentViewsTestCase(TestCase):
         self.assertEqual(jwt_token.payload["user_id"], data["user_id"])
         self.assertEqual(jwt_token.payload["context_id"], data["context_id"])
         self.assertEqual(jwt_token.payload["roles"], [data["roles"]])
+        self.assertDictEqual(
+            jwt_token.payload["course"],
+            {
+                "school_name": "ufr",
+                "course_name": "mathematics",
+                "course_section": "00001",
+            },
+        )
 
         data_state = match.group(2)
         self.assertEqual(data_state, "instructor")
@@ -436,14 +484,14 @@ class DevelopmentViewsTestCase(TestCase):
         """Bypassing LTI verification is only allowed in debug mode."""
         VideoFactory(
             lti_id="123",
-            playlist__lti_id="abc",
+            playlist__lti_id="course-v1:ufr+mathematics+00001",
             playlist__consumer_site__domain="example.com",
         )
         role = random.choice(["instructor", "student"])
         data = {
             "resource_link_id": "123",
             "roles": role,
-            "context_id": "abc",
+            "context_id": "course-v1:ufr+mathematics+00001",
             "user_id": "56255f3807599c377bf0e5bf072359fd",
         }
 
